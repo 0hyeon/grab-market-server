@@ -15,6 +15,20 @@ const upload = multer({
 })
 const port = 8080;
 
+// 배너관련 api
+app.get('/banners',(req,res)=> {
+  models.Banner.findAll({
+    limit:2
+  }).then((result)=>{
+    res.send({
+      banners: result,
+    });
+  }).catch((error)=>{
+    console.log(error);
+    res.status(500).send('에러가 발생했습니다.');
+  })
+});
+
 app.use(express.json());
 app.use(cors());
 app.use('/uploads',express.static('uploads'));//업로드 경로 설정 
@@ -22,7 +36,7 @@ app.use('/uploads',express.static('uploads'));//업로드 경로 설정
 app.get("/products", (req, res) => {
   models.Product.findAll({//상품정보들 복수개를 조회할때는,
     order : [["createdAt","DESC"]],
-    attributes: ["id","name","price","createdAt","seller","imageUrl"],//이정보들만 받겠다.    
+    attributes: ["id","name","price","createdAt","seller","imageUrl","soldout"],//이정보들만 받겠다.    
   }).then((result)=>{
     console.log("PRODUCTS :",result);
     res.send({
@@ -82,6 +96,24 @@ app.post('/image',upload.single('image'),(req,res)=>{//single은 img파일 하�
   res.send({
     imageUrl : file.path,
   })
+});
+
+app.post("/purchase/:id", (req,res)=>{
+  const {id} = req.params;
+  models.Product.update({
+    soldout: 1
+  },{
+    where: {
+      id 
+    }
+  }).then((reault)=>{
+    res.send({
+      result : true
+    })
+  }).catch((error)=>{
+    console.log(error);
+    res.status(500).send("에러가 발생했습니다.");
+  });
 });
 
 
